@@ -33,8 +33,8 @@ if (process.env.NODE_ENV === "production") {
   const staticDir = path.join(__dirname, "../../frontend/dist");
   app.use(express.static(staticDir));
 
-  // Express v5 with path-to-regexp v6+: use '/(.*)' instead of '*'
-  app.get("/(.*)", (req, res) => {
+  // Express v5 with path-to-regexp v6+: use '/*' instead of '*'
+  app.get("/*", (req, res) => {
     res.sendFile(path.join(staticDir, "index.html"));
   });
 }
