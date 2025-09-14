@@ -7,11 +7,14 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import { app,server } from "./lib/socket.js";
 import path from "path";
+import { fileURLToPath } from "url";
 
 
 dotenv.config()
 const PORT = process.env.PORT
-const __dirname = path.resolve();
+// Proper __dirname resolution for ESM modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ limit: '5mb', extended: true }));
@@ -25,10 +28,14 @@ app.use("/api/auth" , authRoutes);
 app.use("/api/messages", messageRoutes);
 
 if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "../frontend/dist")));
+  // Serve the built frontend from the root project's frontend/dist
+  // Current file is backend/src/index.js, so go two levels up to project root
+  const staticDir = path.join(__dirname, "../../frontend/dist");
+  app.use(express.static(staticDir));
 
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
+  // Express v5 with path-to-regexp v6+: use '/(.*)' instead of '*'
+  app.get("/(.*)", (req, res) => {
+    res.sendFile(path.join(staticDir, "index.html"));
   });
 }
 server.listen(PORT,() => {
