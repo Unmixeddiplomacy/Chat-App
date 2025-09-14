@@ -33,9 +33,12 @@ if (process.env.NODE_ENV === "production") {
   const staticDir = path.join(__dirname, "../../frontend/dist");
   app.use(express.static(staticDir));
 
-  // Express v5 with path-to-regexp v6+: use '/*' instead of '*'
-  app.get("/*", (req, res) => {
-    res.sendFile(path.join(staticDir, "index.html"));
+  // SPA fallback without a path pattern to avoid path-to-regexp issues
+  // Serve index.html for any non-API GET request that isn't handled above
+  app.use((req, res, next) => {
+    if (req.method !== "GET") return next();
+    if (req.path && req.path.startsWith("/api")) return next();
+    return res.sendFile(path.join(staticDir, "index.html"));
   });
 }
 server.listen(PORT,() => {
